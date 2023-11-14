@@ -1,0 +1,3489 @@
+openapi: 3.0.3
+info:
+  title: Absence
+  version: v0
+  description: Enterprise Absence API is the single source of truth of colleague’s absence data and all related absence management information like absence types, reasons or plan balances.  Currently Enterprise Absence API handles absence for colleagues who are migrated to W&P. If you wish to fetch data for colleagues who are outside store buisness, like Tesco Bank, Head office, please contact us - 186_ColleagueTransformation_AbsenceAPI_Team@tesco.com
+servers:
+  - url: 'https://api-ppe.tesco.com/timemanagement'
+    description: PPE base URL
+  - url: 'https://api-ppe.tesco.com/timemanagement/pte'
+    description: PTE base URL
+
+
+security: [
+  {
+    "bearerAuth": []
+  }
+]
+
+paths:
+  /v2/absences/search:
+    post:
+      description: This API returns all absences that are applicable within provided date range. Specific absence record contains only basic attributes. Multiple colleague UUIDs can be queried.
+      tags:
+        - Absences Read APIs
+      operationId: searchAbsence
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbsenceSearchRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceSearchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/me/search:
+    post:
+      description: This API returns all absences that are applicable within provided date range for the specific colleague UUID. Colleague UUID is extracted based on the user token provided in the header. Specific absence record contains only basic attributes.
+      tags:
+        - Absences Read APIs
+      operationId: searchAbsenceByColleague
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbsenceColleagueSearchRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceSearchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/v2/absences/absences-projection/search':
+    post:
+      tags:
+        - Absences Read APIs  
+      operationId: "getAbsenceTypeAndAbsenceUUIDs"
+      parameters:
+        - name: "TraceId"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uuid
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AbsenceProjectionApiResponse'
+  '/v2/absences/absence-uuid/{absenceUUID}/person-absence-entry-id':
+    get:
+      operationId: "getAbsenceEntryId"
+      tags:
+        - Absences Read APIs
+      parameters:
+        - name: "absenceUUID"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: uuid
+        - name: "TraceId"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "integer"
+                format: "int64"
+  '/v2/absences/person-absence-entry-id/{personAbsenceEntryId}/absence-uuid':
+    get:
+      operationId: "getAbsenceUUID"
+      tags:
+        - Absences Read APIs
+      parameters:
+        - name: "personAbsenceEntryId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+        - name: "TraceId"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: uuid
+  '/v2/absences/absence-entry-id/absence-uuids':
+    get:
+      tags:
+        - Absences Read APIs
+      operationId: "getAbsenceUUIDs"
+      parameters:
+        - name: "ids"
+          in: "query"
+          required: true
+          schema:
+            type: array
+            items:
+              type: "integer"
+              format: "int64"
+        - name: "TraceId"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AbsenceUUIDResponse'
+  '/v2/absences/{absenceUUID}':
+    get:
+      description: This API returns all attributes that are applicable to the specific absence record.
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceByAbsenceUUID
+      parameters:
+        - name: absenceUUID
+          in: path
+          required: true
+          schema:
+            pattern: >-
+              [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}
+            type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/GetByAbsenceUUIDResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+        - Absences Write APIs
+      operationId: editAbsenceByManager
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: switchUser
+          required: false
+          description:
+            "A Colleague UUID of the manager you would like to switch to with
+            the view."
+          schema:
+            $ref: "#/components/schemas/ColleagueUUID"
+        - name: absenceUUID
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManagerEditAbsenceRequest'
+        required: true
+      responses:
+        '202':
+          description: Accepted
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+  /v2/absences/me/{absenceUUID}:
+    get:
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceByAbsenceUUIDForColleague
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: absenceUUID
+          in: path
+          required: true
+          schema:
+            pattern: '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}'
+            type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/GetByAbsenceUUIDResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags:
+        - Absences Write APIs
+      operationId: editAbsenceByColleague
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: absenceUUID
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColleagueEditAbsenceRequest'
+        required: true
+      responses:
+        '202':
+          description: Accepted
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+  '/v2/absences/{absenceUUID}/entitlements':
+    get:
+      description: This API returns all entitlements that are associated to the specific absence record. Entitlement collection informs which absence plan(s) is/are used for absence booking.
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceEntitlementByAbsenceUUID
+      parameters:
+        - name: absenceUUID
+          in: path
+          required: true
+          schema:
+            pattern: >-
+              [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+        - name: count
+          in: query
+          required: false
+          schema:
+            maximum: 1000
+            type: integer
+            format: int32
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceEntitlementResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/v2/absences/{absenceUUID}/entitlements/details':
+    get:
+      description: This API returns all entitlement details that are associated to the specific entitlement Id. Hundreds of entitlement details may be returned for a single entitlement id, especially for long term absences, please consider this when multiple entitlement ids are queried.
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceEntitlementDetails
+      parameters:
+        - name: absenceUUID
+          in: path
+          required: true
+          schema:
+            pattern: >-
+              [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+        - name: count
+          in: query
+          required: false
+          schema:
+            maximum: 1000
+            type: integer
+            format: int32
+        - name: entitlementIds
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceEntitlementDetailsResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/special-conditions:
+    get:
+      description: This API returns all special conditions that are applicable to the specific Family Leave absence.
+      tags:
+        - Absences Read APIs
+      operationId: getSpecialConditions
+      parameters:
+        - name: absenceTypeNames
+          in: query
+          required: false
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SpecialConditionResponseDTO'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/v2/absences/person-absence-entry-id/{personAbsenceEntryId}/core-shift-uuid':
+    get:
+      tags:
+        - Absences Read APIs
+      operationId: getCoreShiftUUID
+      parameters:
+        - name: personAbsenceEntryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: uuid
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/me/special-conditions:
+    get:
+      description: This API returns all special conditions that are applicable to the specific Family Leave absence.
+      tags:
+        - Absences Read APIs
+      operationId: getSpecialConditionsByColleague
+      parameters:
+        - name: colleagueToken
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: absenceTypeNames
+          in: query
+          required: false
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SpecialConditionResponseDTO'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/me/absence-types:
+    get:
+      description: This API returns all applicable absence types that are applicable for the specific colleague UUID within provided date range. Colleague UUID is extracted based on the user token provided in the header.
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceTypeByColleagueUUIDForColleague
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceTypeResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/absence-types:
+    get:
+      description: This API returns all absence types and allows to filter the absence types with name.
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceTypes
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AbsenceTypeDto'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/v2/absences/colleagues/{colleagueUUId}/absence-types':
+    get:
+      description: This API returns all applicable absence types that are applicable for each requested colleague UUID within provided date range.
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceTypeByColleagueUUID
+      parameters:
+        - name: colleagueUUId
+          in: path
+          required: true
+          schema:
+            pattern: >-
+              [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceTypeResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/v2/absences/core-shift-uuid/{coreShiftUUID}/person-absence-entry-id':
+    get:
+      tags:
+        - Absences Read APIs
+      operationId: getAbsenceEntryIdByCoreShiftUUID
+      parameters:
+        - name: coreShiftUUID
+          in: path
+          required: true
+          schema:
+            pattern: >-
+              [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}
+            type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: integer
+                format: int64
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/maternity-details/person-absences-maternity-id/{personAbsenceMaternityId}/maternity-details-uuid:
+    get:
+      tags:
+        - Absences Read APIs
+      description: This API returns mapping of maternity details UUID with the corresponding person absence maternity id.
+      operationId: getMaternityDetailUUID
+      parameters:
+        - name: personAbsenceMaternityId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/MaternityDetailsPersonAbsenceMaternityIdMaternityDetailUUIDMappingResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  "/v2/absences/maternity-details/maternity-details-uuid/{maternityDetailId}/person-absence-maternity-id":
+    get:
+      tags:
+        - Absences Read APIs
+      description: This API returns mapping of person absence maternity id with the
+        corresponding maternity details UUID.
+      operationId: getPersonAbsenceMaternityId
+      parameters:
+        - name: maternityDetailId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/MaternityDetailsPersonAbsenceMaternityIdMaternityDetailUUIDMappingResponse"
+        '400':
+          description: Bad Request
+          content:
+            "*/*":
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '500':
+          description: Internal Server Error
+          content:
+            "*/*":
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+
+  /v2/absences:
+    post:
+      description: This API is used to create new absences by Managers for their colleagues. startDate/startTime/endDate/endTime are conditionally optional for familyType leaves and mandatory for rest of the type of leaves.
+      tags:
+        - Absences Write APIs
+      operationId: createAbsenceByManager
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: switchUser
+          required: false
+          description:
+            "A Colleague UUID of the manager you would like to switch to with
+            the view."
+          schema:
+            $ref: "#/components/schemas/ColleagueUUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManagerCreateAbsenceRequest'
+        required: true
+      responses:
+        '202':
+          description: Accepted
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+  /v2/absences/me:
+    post:
+      tags:
+        - Absences Write APIs
+      operationId: createAbsenceByColleague
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColleagueCreateAbsenceRequest'
+        required: true
+      responses:
+        '202':
+          description: Accepted
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+  /v2/absences/absence-requests/search:
+    post:
+      tags:
+        - Asynchronous Absence Requests Read APIs
+      operationId: searchRequests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AsyncRequestFetchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+  /v2/absences/absence-requests/me:
+    post:
+      tags:
+        - Asynchronous Absence Requests Read APIs
+      operationId: fetchRequestsByColleague
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColleagueSearchRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AsyncRequestFetchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceErrorResponse'
+
+  /v2/absences/plan-balances/total-plan-balances/search:
+    post:
+      tags:
+        - Absence Plan Balances Read APIs
+      description: 'This API returns Holiday or/and Personal Day plan balance for the requested colleague(s). '
+      operationId: getTotalPlanBalance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TotalPlanBalanceManagerRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageableResponseColleagueTotalPlanBalance'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceErrorResponse'
+  /v2/absences/plan-balances/search:
+    post:
+      tags:
+        - Absence Plan Balances Read APIs
+      description: This API returns plan balance for accrual absence plans only. Colleagues’ plan balances can be requested for current, previous or next Holiday Year.
+      operationId: getAllPlanBalancesByCriteria
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanBalanceSearchRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceSearchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceErrorResponse'
+  /v2/absences/plan-balances/me/total-plan-balances/search:
+    post:
+      description: This API returns Holiday or/and Personal Day plan balance for the requested colleague. Colleague UUID is extracted based on the user token provided in the header.
+      tags:
+        - Absence Plan Balances Read APIs
+      operationId: getTotalPlanBalanceByColleague
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TotalPlanBalanceColleagueRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageableResponseColleagueTotalPlanBalance'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceErrorResponse'
+  /v2/absences/plan-balances/me/search:
+    post:
+      description: This API returns plan balance for accrual absence plans only. Colleague’s plan balances can be requested for current, previous or next Holiday Year. Colleague UUID is extracted based on the user token provided in the header.
+      tags:
+        - Absence Plan Balances Read APIs
+      operationId: getAllPlanBalancesByCriteriaForColleague
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanBalanceColleagueSearchRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceSearchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceErrorResponse'
+  /v2/absences/me/absence-type-status-report/search:
+    post:
+      description: This API returns total of pending, booked, taken absences of specific type in the current, previous or next holiday year.Colleague UUID is extracted based on the user token provided in the header.
+      tags:
+        - Absence Type Status Report APIs
+      operationId: getMyPlanBalanceStatusReports
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ColleaguePlanBalanceStatusReportRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceStatusReportResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceErrorResponse'
+  /v2/absences/absence-type-status-report/search:
+    post:
+      description: This API returns total of pending, booked, taken absences of specific type in the current, previous or next holiday year. Multiple colleague UUIDs can be queried.
+      tags:
+        - Absence Type Status Report APIs
+      operationId: getPlanBalanceStatusReports
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanBalanceStatusReportRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageableResponsePlanBalanceStatusReportResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceErrorResponse'
+  /v2/absences/absence-plans:
+    get:
+      description: This API returns all applicable Absence Plans for the specific country code.
+      tags:
+        - Absence Plans List APIs
+      operationId: getAbsencePlans
+      parameters:
+        - name: TraceId
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: legislationCode
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+        - name: count
+          in: query
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PageableResponseAbsencePlanDTO'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PlanBalanceErrorResponse'
+  /v2/absences/absence-type-usage-statistics/search:
+    post:
+      tags:
+        - Absence Plan Balances Read APIs
+      operationId: getColleagueAbsenceTypeUsageStatistics
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbsenceTypeUsageStatisticsRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AbsenceTypeUsageStatisticsResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/action/task/{task-uuid}:
+    patch:
+      tags:
+        - Absences Tasks APIs
+      operationId: updateTask
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: task-uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: managerUUID
+          required: false
+          description:
+            "A Colleague UUID of the manager you would like to switch to with
+            the view."
+          schema:
+            $ref: "#/components/schemas/ColleagueUUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskAction'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TaskPatchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/tasks:
+    get:
+      tags:
+        - Absences Tasks APIs
+      operationId: getAbsenceTask
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: manager-uuids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: task-uuids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: absence-uuids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: assigned-start-date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: assigned-end-date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: updated-start-date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: updated-end-date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: sort-field
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort-order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+        - name: count
+          in: query
+          required: false
+          schema:
+            maximum: 200
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TaskSearchResponse'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/rules/duration:
+    post:
+      tags:
+        - Absences Rule Service
+      operationId: getAbsenceDuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbsenceDurationRequest'
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AbsenceDurationResponse'
+  /v1/tasks/my/manager-approval-requests:
+    get:
+      tags:
+        - Absences Tasks APIs
+      operationId: getGlobalApprovalTask
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: managerUUID
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: colleagueUuid
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: locationUUID
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GlobalApprovalTaskResponseList'
+        '400':
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/my/missing-documents:
+    get:
+      tags:
+        - Absences Read APIs
+      summary: Get all my missing documents
+      description: Get all missing documents for the logged in colleague
+      operationId: getMyMissingDocuments
+      parameters:
+        - name: TraceId
+          in: header
+          description: Tesco standard Trace Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissingDocumentsResponse'
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Failed on authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Something went wrong, please contact us if that happen again
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v2/absences/manager/missing-documents:
+    get:
+      tags:
+        - Absences Read APIs
+      summary: Get all missing documents for given colleague
+      description: Get all missing documents for given colleague
+      operationId: getManagerMissingDocuments
+      parameters:
+        - name: TraceId
+          in: header
+          description: Tesco standard Trace Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: ColleagueUUID
+          in: query
+          description: Filter for colleague UUID.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: managerUUID
+          in: query
+          description: Switch user
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissingDocumentsResponse'
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Failed on authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not permitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Something went wrong, please contact us if that happen again
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        key:
+          type: string
+        message:
+          type: object
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+        errorDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    AbsenceSearchRequest:
+      required:
+        - colleagueUUID
+        - endDate
+        - startDate
+      type: object
+      properties:
+        colleagueUUID:
+          type: array
+          items:
+            type: string
+            format: uuid
+        startDate:
+          pattern: yyyy-MM-dd
+          type: string
+          format: date
+        endDate:
+          pattern: yyyy-MM-dd
+          type: string
+          format: date
+        absenceStatusCode:
+          type: string
+        absenceApprovalStatusCode:
+          maxItems: 3
+          minItems: 0
+          type: array
+          items:
+            type: string
+        absenceTypeName:
+          maxItems: 3
+          minItems: 0
+          type: array
+          items:
+            type: string
+        absenceStatusCodeExclude:
+          type: string
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortBy'
+        page:
+          type: integer
+          format: int32
+        count:
+          maximum: 1000
+          type: integer
+          format: int32
+        attentionNeeded:
+          type: boolean
+    SortBy:
+      type: object
+      properties:
+        field:
+          type: string
+          enum:
+            - startDateTime
+            - absenceStatusCode
+        order:
+          type: string
+          enum:
+            - ascending
+            - descending
+    AbsenceOnCoreShift:
+      type: object
+      properties:
+        absenceOnCoreShiftUUID:
+          type: string
+          format: uuid
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        duration:
+          type: number
+          format: float
+    AbsenceReasonDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    AbsenceResponseRead:
+      type: object
+      properties:
+        personAbsenceEntryId:
+          type: integer
+          format: int64
+        colleague:
+          $ref: '#/components/schemas/Colleague'
+        absenceUUID:
+          type: string
+          format: uuid
+        comments:
+          type: string
+        createdBy:
+          $ref: '#/components/schemas/Colleague'
+        lastUpdatedBy:
+          $ref: '#/components/schemas/Colleague'
+        source:
+          type: string
+        absenceDuration:
+          type: number
+          format: float
+        unitOfMeasure:
+          type: string
+        unitsOfMeasureMeaning:
+          type: string
+        creationDateTime:
+          type: string
+          format: date-time
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        lastUpdatedDateTime:
+          type: string
+          format: date-time
+        absenceVersion:
+          type: integer
+          format: int32
+        absenceType:
+          $ref: '#/components/schemas/AbsenceTypeWithoutReasonDto'
+        absenceReason:
+          $ref: '#/components/schemas/AbsenceReasonDto'
+        absenceStatus:
+          $ref: '#/components/schemas/AbsenceStatusDto'
+        absenceApprovalStatus:
+          $ref: '#/components/schemas/ApprovalStatusDto'
+        absenceEntitlementIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        absenceOnCoreShift:
+          $ref: '#/components/schemas/AbsenceOnCoreShift'
+        maternityDetails:
+          $ref: '#/components/schemas/MaternityDetailsResponse'
+        attentionNeeded:
+          type: boolean
+        attentionNeededReasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttentionNeededType'
+    AttentionNeededType:
+      type: string
+      enum:
+        - WORK_SCHEDULE_CHANGE
+        - INSUFFICIENT_HOLIDAY_ENTITLEMENT
+    AbsenceSearchResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        absenceResponseList:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceResponseRead'
+    AbsenceStatusDto:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+    AbsenceTypeWithoutReasonDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    ApprovalStatusDto:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+    Colleague:
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+          format: uuid
+    MaternityDetailsResponse:
+      type: object
+      properties:
+        maternityDetailUUID:
+          type: string
+          format: uuid
+        personAbsenceMaternityId:
+          type: integer
+          format: int64
+    AbsenceColleagueSearchRequest:
+      required:
+        - endDate
+        - startDate
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        absenceStatusCode:
+          type: string
+        absenceApprovalStatusCode:
+          maxItems: 3
+          minItems: 0
+          type: array
+          items:
+            type: string
+        absenceTypeName:
+          maxItems: 3
+          minItems: 0
+          type: array
+          items:
+            type: string
+        absenceStatusCodeExclude:
+          type: string
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortBy'
+        page:
+          type: integer
+          format: int32
+        count:
+          maximum: 1000
+          type: integer
+          format: int32
+        attentionNeeded:
+          type: boolean
+    AbsenceUUIDAndAbsenceTypeResponse:
+      type: object
+      properties:
+        absenceUUID:
+          type: string
+          format: uuid
+        absenceTypeCode:
+          type: string
+    GetByAbsenceUUIDResponse:
+      type: object
+      properties:
+        personAbsenceEntryId:
+          type: integer
+          format: int64
+        colleague:
+          $ref: '#/components/schemas/Colleague'
+        absenceUUID:
+          type: string
+          format: uuid
+        comments:
+          type: string
+        createdBy:
+          $ref: '#/components/schemas/Colleague'
+        lastUpdatedBy:
+          $ref: '#/components/schemas/Colleague'
+        source:
+          type: string
+        absenceDuration:
+          type: number
+          format: float
+        unitOfMeasure:
+          type: string
+        unitsOfMeasureMeaning:
+          type: string
+        creationDateTime:
+          type: string
+          format: date-time
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        lastUpdatedDateTime:
+          type: string
+          format: date-time
+        absenceVersion:
+          type: integer
+          format: int32
+        absenceType:
+          $ref: '#/components/schemas/AbsenceTypeWithoutReasonDto'
+        absenceReason:
+          $ref: '#/components/schemas/AbsenceReasonDto'
+        absenceStatus:
+          $ref: '#/components/schemas/AbsenceStatusDto'
+        absenceApprovalStatus:
+          $ref: '#/components/schemas/ApprovalStatusDto'
+        absenceEntitlementIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        absenceOnCoreShift:
+          $ref: '#/components/schemas/AbsenceOnCoreShift'
+        splCondition:
+          type: string
+        agreementId:
+          type: integer
+          format: int64
+        agreementName:
+          type: string
+        maternityDetails:
+          $ref: '#/components/schemas/MaternityDetailsWithDatesResponse'
+        attentionNeeded:
+          type: boolean
+          default: false
+        attentionNeededReasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttentionNeededType'
+    MaternityDetailsWithDatesResponse:
+      type: object
+      properties:
+        maternityDetailUUID:
+          type: string
+          format: uuid
+        personAbsenceMaternityId:
+          type: integer
+          format: int64
+        plannedChildBirthDate:
+          type: string
+          format: date-time
+        actualChildBirthDate:
+          type: string
+          format: date-time
+        plannedStartDate:
+          type: string
+          format: date-time
+        plannedReturnDate:
+          type: string
+          format: date-time
+        actualStartDate:
+          type: string
+          format: date-time
+        actualReturnDate:
+          type: string
+          format: date-time
+        adoptionMatchingDate:
+          type: string
+          format: date-time
+        plannedLeaveDuration:
+          type: number
+          format: double
+        actualLeaveDuration:
+          type: number
+          format: double
+    AbsenceEntitlementModel:
+      type: object
+      properties:
+        entitlementId:
+          type: integer
+          format: int64
+        absencePlanId:
+          type: integer
+          format: int64
+        personAbsenceEntryId:
+          type: integer
+          format: int64
+        absencePlanName:
+          type: string
+        units:
+          type: number
+          format: float
+        unitsOfMeasure:
+          type: string
+        payFactor:
+          type: number
+          format: float
+        activityStartDate:
+          type: string
+          format: date-time
+        activityEndDate:
+          type: string
+          format: date-time
+        activityCode:
+          type: string
+        activityCodeMeaning:
+          type: string
+        source:
+          type: string
+        sourceCodeMeaning:
+          type: string
+        entitlementMethodCodeMeaning:
+          type: string
+        changeReasonCode:
+          type: string
+        changeReasonCodeMeaning:
+          type: string
+        used:
+          type: number
+          format: float
+        remaining:
+          type: number
+          format: float
+        personId:
+          type: integer
+          format: int64
+    AbsenceEntitlementResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int32
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        absenceEntitlements:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceEntitlementModel'
+    AbsenceEntitlementDetailModel:
+      type: object
+      properties:
+        payFactor:
+          type: number
+          format: float
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        entitlementDetailsId:
+          type: integer
+          format: int64
+        units:
+          type: number
+          format: float
+        unitsOfMeasure:
+          type: string
+        absencePlanUMMeaning:
+          type: string
+        entitlementId:
+          type: integer
+          format: int64
+    AbsenceEntitlementDetailsResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int32
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        entitlementDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceEntitlementDetailModel'
+    SpecialConditionDTO:
+      type: object
+      properties:
+        code:
+          type: string
+        meaning:
+          type: string
+        absenceTypeName:
+          type: string
+        absenceTypeId:
+          type: integer
+          format: int64
+    SpecialConditionResponseDTO:
+      type: object
+      properties:
+        specialConditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecialConditionDTO'
+    AbsenceTypeDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        absenceReasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceReasonDto'
+    AbsenceTypeResponseDto:
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+          format: uuid
+        absenceTypes:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceTypeDto'
+    AbsenceUUIDResponse:
+      type: object
+      properties:
+        personAbsenceEntryId:
+          type: integer
+          format: int64
+        absenceUUID:
+          type: string
+          format: uuid
+    StatusRead:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - OK
+            - FAIL
+            - DEGRADED
+        version:
+          type: string
+        error:
+          $ref: '#/components/schemas/Error'
+    AbsenceErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+        errorDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+
+    FamilyTypeAbsenceDetails:
+      type: object
+      properties:
+        plannedChildBirthDate:
+          type: string
+          format: date-time
+        adoptionMatchingDate:
+          type: string
+          format: date-time
+        plannedStartDate:
+          type: string
+          format: date-time
+        plannedReturnDate:
+          type: string
+          format: date-time
+        actualChildBirthDate:
+          type: string
+          format: date-time
+        actualStartDate:
+          type: string
+          format: date-time
+        actualReturnDate:
+          type: string
+          format: date-time
+    ManagerCreateAbsenceRequest:
+      required:
+        - absenceTypeName
+        - colleagueUUID
+        - endDate
+        - endTime
+        - startDate
+        - startTime
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+        absenceTypeName:
+          type: string
+        startDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: 09:10:00
+        endDate:
+          type: string
+          format: date
+        endTime:
+          type: string
+          example: 09:10:00
+        absenceStatusCode:
+          type: string
+        comments:
+          type: string
+        absenceReason:
+          type: string
+        specialCondition:
+          type: string
+        familyTypeAbsenceDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyTypeAbsenceDetails'
+    AbsenceResponse:
+      type: object
+      properties:
+        absenceRequestId:
+          type: string
+          format: uuid
+        absenceUUID:
+          type: string
+          format: uuid
+        absenceRequestStatus:
+          type: string
+    ColleagueCreateAbsenceRequest:
+      required:
+        - absenceTypeName
+        - endDate
+        - endTime
+        - startDate
+        - startTime
+      type: object
+      properties:
+        absenceTypeName:
+          type: string
+        startDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: 09:10:00
+        endDate:
+          type: string
+          format: date
+        endTime:
+          type: string
+          example: 09:10:00
+        absenceStatusCode:
+          type: string
+        comments:
+          type: string
+        absenceReason:
+          type: string
+    ManagerEditAbsenceRequest:
+      required:
+        - absenceStatusCode
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: 09:10:00
+        endDate:
+          type: string
+          format: date
+        endTime:
+          type: string
+          example: 09:10:00
+        absenceStatusCode:
+          type: string
+        comments:
+          type: string
+        absenceReason:
+          type: string
+        specialCondition:
+          type: string
+        familyTypeAbsenceDetails:
+          type: array
+          items:
+            "$ref": "#/components/schemas/FamilyTypeAbsenceDetails"
+    ColleagueEditAbsenceRequest:
+      required:
+        - absenceStatusCode
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: 09:10:00
+        endDate:
+          type: string
+          format: date
+        endTime:
+          type: string
+          example: 09:10:00
+        absenceStatusCode:
+          type: string
+        comments:
+          type: string
+        absenceReason:
+          type: string
+        specialCondition:
+          type: string
+        familyTypeAbsenceDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyTypeAbsenceDetails'
+    Status:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - OK
+            - FAIL
+            - DEGRADED
+        version:
+          type: string
+        error:
+          $ref: '#/components/schemas/Error'
+    SearchRequest:
+      required:
+        - colleagueUUIDs
+        - endDate
+        - startDate
+      type: object
+      properties:
+        colleagueUUIDs:
+          type: array
+          items:
+            type: string
+            format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          type: array
+          items:
+            type: string
+        offset:
+          type: integer
+          format: int32
+        count:
+          maximum: 1000
+          type: integer
+          format: int32
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortBy'
+    SortBy2:
+      type: object
+      properties:
+        field:
+          type: string
+          enum:
+            - startDate
+            - absenceType
+            - status
+            - requestTime
+        order:
+          type: string
+          enum:
+            - ascending
+            - descending
+    AsyncRequestFetchResponse:
+      type: object
+      properties:
+        asyncRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/AsyncRequestResponse'
+        totalCount:
+          type: integer
+          format: int64
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+    AsyncRequestResponse:
+      type: object
+      properties:
+        asyncRequestUUID:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING
+            - SUCCESS
+            - FAILURE
+            - HCM_UPDATE_SUCCESS
+        requestType:
+          type: string
+          enum:
+            - CREATE_ABSENCE
+            - EDIT_ABSENCE
+        requestTime:
+          type: string
+          format: date-time
+        requester:
+          $ref: '#/components/schemas/Colleague2'
+        request:
+          $ref: '#/components/schemas/UnifiedRequestDataResponse'
+    Colleague2:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        personNumber:
+          type: string
+    UnifiedRequestDataResponse:
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+        createdByColleagueUUID:
+          type: string
+        colleaguePersonNumber:
+          type: string
+        createdByPersonNumber:
+          type: string
+        employer:
+          type: string
+        absenceType:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+        endDate:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+        absenceStatusCd:
+          type: string
+        comments:
+          type: string
+        absenceReason:
+          type: string
+        absenceRequestTimestamp:
+          type: string
+          format: date-time
+        absenceRequestUUID:
+          type: string
+          format: uuid
+    ColleagueSearchRequest:
+      required:
+        - endDate
+        - startDate
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          type: array
+          items:
+            type: string
+        offset:
+          type: integer
+          format: int32
+        count:
+          maximum: 1000
+          type: integer
+          format: int32
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortBy2'
+    PlanBalanceErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+        errorDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    PlanBalanceRequest:
+      required:
+        - entitlementCalculationDate
+        - personId
+        - personPlanEnrollmentId
+        - planId
+        - transactionTypeCode
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+          format: uuid
+        personId:
+          type: integer
+          format: int64
+        entitlementCalculationDate:
+          type: string
+          format: date-time
+        personPlanEnrollmentId:
+          type: integer
+          format: int64
+        planName:
+          type: string
+        planId:
+          type: integer
+          format: int64
+        planType:
+          type: string
+        planStatus:
+          type: string
+        planStatusMeaning:
+          type: string
+        planDisplayStatusFlag:
+          type: boolean
+        enrollmentStartDate:
+          type: string
+          format: date-time
+        enrollmentEndDate:
+          type: string
+          format: date-time
+        planUnitOfMeasure:
+          type: string
+        unitOfMeasureMeaning:
+          type: string
+        sysEffectiveDate:
+          type: string
+          format: date-time
+        effectiveStartDate:
+          type: string
+          format: date-time
+        effectiveEndDate:
+          type: string
+          format: date-time
+        level:
+          type: string
+        planEnrollmentStatus:
+          type: string
+        assignmentId:
+          type: integer
+          format: int64
+        assignmentName:
+          type: string
+        assignmentNumber:
+          type: string
+        personAccrualEntryDtlId:
+          type: integer
+          format: int64
+        transactionDate:
+          type: string
+          format: date-time
+        transactionTypeCode:
+          type: string
+        transactionTypeName:
+          type: string
+        value:
+          type: number
+          format: float
+        additionalInformation:
+          type: string
+        status:
+          type: string
+        changeType:
+          type: string
+        sourceEvent:
+          type: string
+    PlanBalanceResponse:
+      type: object
+      properties:
+        planBalanceUUID:
+          type: string
+          format: uuid
+    TotalPlanBalanceManagerRequest:
+      required:
+        - balanceAsOfDate
+        - colleagueUUID
+      type: object
+      properties:
+        colleagueUUID:
+          type: array
+          items:
+            type: string
+            format: uuid
+        balanceAsOfDate:
+          type: string
+          format: date-time
+        absenceTypeName:
+          type: array
+          items:
+            type: string
+        page:
+          type: integer
+          format: int32
+        count:
+          maximum: 1000
+          type: integer
+          format: int32
+    ColleagueTotalPlanBalance:
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+          format: uuid
+        balanceAsOfDate:
+          type: string
+          format: date-time
+        terminationDate:
+          type: string
+          format: date-time
+        calculationDate:
+          type: string
+          format: date-time
+        totalPlanBalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TotalPlanBalance'
+    PageableResponseColleagueTotalPlanBalance:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColleagueTotalPlanBalance'
+    TotalPlanBalance:
+      type: object
+      properties:
+        absenceType:
+          type: string
+        annualEntitlement:
+          type: number
+          format: float
+        adjustment:
+          type: number
+          format: float
+        disbursement:
+          type: number
+          format: float
+        used:
+          type: number
+          format: float
+        remainingBalance:
+          type: number
+          format: float
+        unitOfMeasure:
+          type: string
+        unitOfMeasureMeaning:
+          type: string
+    PlanBalanceSearchRequest:
+      required:
+        - balanceAsOfDate
+        - colleagueUUID
+      type: object
+      properties:
+        colleagueUUID:
+          type: array
+          items:
+            type: string
+            format: uuid
+        balanceAsOfDate:
+          type: string
+          format: date-time
+        planId:
+          type: array
+          items:
+            type: integer
+            format: int64
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortBy3'
+        page:
+          type: integer
+          format: int32
+        count:
+          maximum: 1000
+          type: integer
+          format: int32
+    SortBy3:
+      type: object
+      properties:
+        field:
+          type: string
+          enum:
+            - planName
+        order:
+          type: string
+          enum:
+            - ascending
+            - descending
+    GetAllPlanBalanceResponse:
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+          format: uuid
+        personPlanEnrollmentId:
+          type: integer
+          format: int64
+        planName:
+          type: string
+        planId:
+          type: integer
+          format: int64
+        planType:
+          type: string
+        planStatus:
+          type: string
+        planStatusMeaning:
+          type: string
+        enrollmentStartDate:
+          type: string
+          format: date-time
+        enrollmentEndDate:
+          type: string
+          format: date-time
+        balanceAsOfDate:
+          type: string
+          format: date-time
+        remainingBalance:
+          type: number
+          format: float
+        calculationDate:
+          type: string
+          format: date-time
+        planUnitOfMeasure:
+          type: string
+        unitOfMeasureMeaning:
+          type: string
+        planEnrollmentStatus:
+          type: string
+        planBalanceSummary:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanBalanceSummary'
+        planBalanceDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanDetail'
+    PlanBalanceSearchResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        planBalanceResponseList:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetAllPlanBalanceResponse'
+    PlanBalanceSummary:
+      type: object
+      properties:
+        transactionTypeCode:
+          type: string
+        transactionTypeName:
+          type: string
+        value:
+          type: number
+          format: float
+    PlanDetail:
+      type: object
+      properties:
+        transactionDate:
+          type: string
+          format: date-time
+        transactionTypeCode:
+          type: string
+        transactionTypeName:
+          type: string
+        value:
+          type: number
+          format: float
+        additionalInformation:
+          type: string
+    TotalPlanBalanceColleagueRequest:
+      required:
+        - balanceAsOfDate
+      type: object
+      properties:
+        balanceAsOfDate:
+          type: string
+          format: date-time
+        absenceTypeName:
+          type: array
+          items:
+            type: string
+    PlanBalanceColleagueSearchRequest:
+      required:
+        - balanceAsOfDate
+      type: object
+      properties:
+        balanceAsOfDate:
+          type: string
+          format: date-time
+        planId:
+          type: array
+          items:
+            type: integer
+            format: int64
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortBy3'
+        page:
+          type: integer
+          format: int32
+        count:
+          maximum: 1000
+          type: integer
+          format: int32
+    ColleaguePlanBalanceStatusReportRequest:
+      required:
+        - absenceTypeName
+        - statusAsOfDate
+      type: object
+      properties:
+        absenceTypeName:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        statusAsOfDate:
+          type: string
+          format: date-time
+    AbsenceTypeStatusReport:
+      type: object
+      properties:
+        absenceTypeName:
+          type: string
+        taken:
+          $ref: '#/components/schemas/StatusReport'
+        booked:
+          $ref: '#/components/schemas/StatusReport'
+        pending:
+          $ref: '#/components/schemas/StatusReport'
+    PlanBalanceStatusReportResponse:
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+          format: uuid
+        statusAsOfDate:
+          type: string
+          format: date
+        terminationDate:
+          type: string
+          format: date
+        calculationDate:
+          type: string
+          format: date
+        absenceTypeStatusReports:
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceTypeStatusReport'
+    StatusReport:
+      type: object
+      properties:
+        total:
+          type: number
+          format: float
+        unitsOfMeasure:
+          type: string
+        unitsOfMeasureMeaning:
+          type: string
+    PlanBalanceStatusReportRequest:
+      required:
+        - absenceTypeName
+        - colleagueUUIDs
+        - statusAsOfDate
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int32
+        colleagueUUIDs:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            format: uuid
+        absenceTypeName:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        statusAsOfDate:
+          type: string
+          format: date-time
+    PageableResponsePlanBalanceStatusReportResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanBalanceStatusReportResponse'
+    AbsencePlanDTO:
+      type: object
+      properties:
+        planId:
+          type: integer
+          format: int64
+        planName:
+          type: string
+        planType:
+          type: string
+        planStatus:
+          type: string
+        planStatusMeaning:
+          type: string
+        planUnitsOfMeasure:
+          type: string
+        unitsOfMeasureMeaning:
+          type: string
+        description:
+          type: string
+        legislationCode:
+          type: string
+        legislativeDataGroupId:
+          type: integer
+          format: int64
+        effectiveStartDate:
+          type: string
+          format: date-time
+        effectiveEndDate:
+          type: string
+          format: date-time
+    PageableResponseAbsencePlanDTO:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        hasNext:
+          type: boolean
+        totalPages:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsencePlanDTO'
+    AbsenceDurationRequest:
+      required:
+        - absenceTypeName
+        - colleagueUUID
+        - endDate
+        - startDate
+      type: object
+      properties:
+        colleagueUUID:
+          type: string
+          format: uuid
+        absenceTypeName:
+          type: string
+          example: "Holiday"
+        startDate:
+          pattern: yyyy-MM-dd
+          type: string
+          format: date
+        endDate:
+          pattern: yyyy-MM-dd
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: 09:00
+        endTime:
+          type: string
+          example: 17:00
+        absenceUUID:
+          type: string
+          format: uuid
+    AbsenceDurationResponse:
+      type: object
+      properties:
+        absenceDuration:
+          type: number
+          format: float
+        remainingShiftDuration:
+          type: number
+          format: float
+        breakDuration:
+          type: number
+          format: float
+        unitsOfMeasure:
+          type: string
+        absenceBookingAllowed:
+          type: boolean
+    TaskAction:
+      required:
+        - action
+      type: object
+      properties:
+        action:
+          type: string
+        comment:
+          type: string
+    TaskPatchResponse:
+      type: object
+      properties:
+        taskUUID:
+          type: string
+          format: uuid
+        status:
+          type: string
+    TaskResponse:
+      type: object
+      properties:
+        taskUUID:
+          type: string
+          format: uuid
+        managerUUID:
+          type: string
+          format: uuid
+        absenceUUID:
+          type: string
+          format: uuid
+        status:
+          type: string
+        lastupdateDateTime:
+          type: string
+          format: date-time
+        assignedDate:
+          type: string
+          format: date-time
+        comment:
+          type: string
+        lastUpdatedBy:
+          type: string
+    TaskSearchResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        hasNext:
+          type: boolean
+        taskList:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskResponse'
+    MaternityDetailsPersonAbsenceMaternityIdMaternityDetailUUIDMappingResponse:
+      type: object
+      properties:
+        maternityDetailUUID:
+          type: string
+          format: uuid
+    GlobalApprovalTaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        colleagueUUID:
+          type: string
+          format: uuid
+        requestedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - APPROVED
+            - DECLINED
+            - PENDING
+        title:
+          type: string
+        titlePostFix:
+          type: string
+        requestType:
+          type: string
+    GlobalApprovalTaskResponseList:
+      type: object
+      properties:
+        approvals:
+          type: array
+          items:
+            $ref: '#/components/schemas/GlobalApprovalTaskResponse'
+    AbsenceTypeUsageStatisticsRequest:
+      type: object
+      properties:
+        absenceType:
+          type: string
+        colleagueUuids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        pastWeeksToBeConsidered:
+          type: number
+          format: int32
+        excludeAbsenceReasons:
+          type: array
+          items:
+            type: number
+            format: int64
+        includeAbsenceReasons:
+          type: array
+          items:
+            type: number
+            format: int64
+
+    AbsenceTypeUsageStatisticsResponse:
+      type: object
+      properties:
+        colleagueUuid:
+          type: string
+          format: uuid
+        absenceType:
+          type: string
+        absenceHours:
+          type: number
+          multipleOf: 0.01
+        absencePercentage:
+          type: number
+          multipleOf: 0.01
+        contractHour:
+          type: number
+          multipleOf: 0.01
+        absenceReasonSummary:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceReasonSummary'
+    AbsenceReasonSummary:
+      type: object
+      properties:
+        absenceReasonId:
+          type: number
+          format: int64
+        absenceReasonName:
+          type: string
+        absenceHours:
+          type: number
+          multipleOf: 0.01
+        absenceUsagePercentage:
+          type: number
+          multipleOf: 0.01
+    AbsenceProjectionApiResponse:
+      type: object
+      properties:
+        absenceUUID:
+          type: string
+          format: uuid
+        absenceTypeCode:
+          type: string
+        duration:
+          type: number
+          format: float
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
+        absencesLastUpdatedDateTime:
+          type: string
+          format: date-time
+        unitOfMeasure:
+          type: string
+    ColleagueUUID:
+      type: string
+      format: uuid
+    MissingDocuments:
+      required:
+        - documentTypeId
+        - externalSystemObjectId
+      type: object
+      properties:
+        documentTypeId:
+          type: number
+        externalSystemObjectId:
+          type: string
+        freeTextField:
+          type: string
+    MissingDocumentsResponse:
+      type: object
+      properties:
+        missingDocuments:
+          type: array
+          items:
+            $ref: '#/components/schemas/MissingDocuments'
+
+  securitySchemes: {
+    "bearerAuth": {
+      "type": "http",
+      "description": "JWT Authorization header using the Bearer scheme.",
+      "scheme": "bearer",
+      "bearerFormat": "JWT"
+    }
+  }

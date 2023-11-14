@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>File Input and Output</title>
+<style>
+body {
+	background-color: #000000;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
+	line-height: 1.5;
+	padding: 0;
+	margin: 0;
+}
+
+.container {
+	width: 500px;
+	margin: 0 auto;
+	background-color: #ffffff;
+	padding: 20px;
+	border-radius: 5px;
+	margin-bottom: 100px;
+	margin-top: 10px;
+	box-shadow: 5px 10px 18px red;
+}
+
+input[type="file"] {
+	padding: 10px;
+	width: 100%;
+	border: 1px solid #ccc;
+	margin-bottom: 10px;
+	box-sizing: border-box;
+}
+
+select {
+	padding: 10px;
+	width: 100%;
+	border: 1px solid #ccc;
+	margin-bottom: 10px;
+	background-color: #ffffff;
+	box-sizing: border-box;
+}
+
+input[type="submit"] {
+	background-color: #4CAF50;
+	color: white;
+	padding: 10px 20px;
+	margin-top: 20px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+input[type="submit"]:hover {
+	background-color: #45a049;
+}
+</style>
+</head>
+<body>
+<!--   <div>  <img align="left" src="C:\\Users\\INE12364222\\OneDrive - Tesco\\Documents\\projects\\MyWebApplication\\WebContent\\download2.png" width="200" height="150"></div> -->
+<!--   <div>  <img align="right" src="C:\\Users\\INE12364222\\OneDrive - Tesco\\Documents\\projects\\MyWebApplication\\WebContent\\openAI_Image.png" width="350" height="150"></div> -->
+  
+	<div class="container">	
+	<h3 style="font-family:calibri;color:black;display: flex; justify-content: center;"><i>GENERATE TEST SCRIPTS FROM Open API FILE</i></h3>
+		<form action="upload_single" method="post"
+			enctype="multipart/form-data">
+			Select File:<input type="file" name="fname" required /><br /> Select
+			Prompt:<select name="option">
+				<option value="Jira Test Cases">Jira Test Cases</option>
+				<option value="Cucumber Features">Cucumber Features</option>
+				<option value="Karate Scripts">Karate Scripts</option></select>		
+				<input type="submit" value="Upload" />
+		</form>
+	
+	</div>
+	<div style="display: flex; justify-content: center;"> </div>
+	<div style="display: flex; justify-content: center;">  <img src="C:\\Users\\INE12364222\\OneDrive - Tesco\\Documents\\projects\\MyWebApplication\\WebContent\\openAI_Flow.png" width="600" height="250"></div>
+</body>
+</html>

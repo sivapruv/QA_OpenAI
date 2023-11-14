@@ -1,0 +1,32 @@
+{
+	"Jira Test Cases": 
+	{
+		"query1": "create jira test cases for given yaml content",
+		"query2": "more jira test cases for given yaml content",
+		"query3": "create ira test cases for negative scenarios for given yaml content"
+	},
+
+	"Cucumber Features": 
+	{
+		"query1": "create karate cucumber automation scripts including scenario outline for functional scenarios for given yaml content",
+		"query2": "more karate cucumber automation scripts including scenario outline for functional scenarios for given yaml content",
+		"query3": "create karate cucumber automation scripts including scenario outline for positive scenarios for given yaml content",
+		"query4": "more karate cucumber automation scripts including scenario outline for positive scenarios for given yaml content",
+		"query5": "create karate cucumber automation scripts including scenario outline for negative scenarios for given yaml content",
+		"query6": "more karate cucumber automation scripts including scenario outline for negative scenarios for given yaml content",
+		"query7": "more karate cucumber automation scripts including scenario outline for perofrmance scenarios for given yaml content"
+	},
+
+	"Karate Scripts": 
+	{
+		"query1": "create karate cucumber automation scripts including scenario outline for functional scenarios for given yaml content",
+		"query2": "more karate cucumber automation scripts including scenario outline for functional scenarios for given yaml content",
+		"query3": "create karate cucumber automation scripts including scenario outline for positive scenarios for given yaml content",
+		"query4": "more karate cucumber automation scripts including scenario outline for positive scenarios for given yaml content",
+		"query5": "create karate cucumber automation scripts including scenario outline for negative scenarios for given yaml content",
+		"query6": "more karate cucumber automation scripts including scenario outline for negative scenarios for given yaml content",
+		"query7": "more karate cucumber automation scripts including scenario outline for perofrmance scenarios for given yaml content",
+		"query8": "create karate cucumber automation scripts including scenario outline for security scenarios for given yaml content",
+		"query9": "more karate cucumber automation scripts for including scenario outline security scenarios for given yaml content"
+	}
+}
